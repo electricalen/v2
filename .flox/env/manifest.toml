@@ -123,13 +123,10 @@ sandbox = "off"
 
 [build.miniflux]
 command = '''
-  echo "cwd=$PWD"; ls -la | head -5
-  rm -rf ./vendor
-  ln -s ${vendor}/vendor ./vendor
-  export GOFLAGS="-mod=vendor"
-  export CGO_ENABLED=0
-  mkdir -p $out/bin
-  go build -trimpath -ldflags="-s -w" -o $out/bin/miniflux .
+  env | grep -iE 'flox|src|nix' | sort
+  echo "---"
+  echo "cwd=$PWD"
+  ls -la
 '''
 sandbox = "pure"
 version.command = "git describe --tags --always --dirty 2>/dev/null || echo dev"
