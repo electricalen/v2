@@ -11,17 +11,25 @@
       }
     },
     "vars": {
+      "ADMIN_PASSWORD": "adminadmin",
+      "ADMIN_USERNAME": "admin",
+      "CREATE_ADMIN": "1",
       "DATABASE_URL": "postgres://miniflux:secret@localhost:15432/miniflux?sslmode=disable",
+      "LISTEN_ADDR": "127.0.0.1:8080",
       "POSTGRES_DB": "miniflux",
       "POSTGRES_HOST": "localhost",
       "POSTGRES_PASSWORD": "secret",
       "POSTGRES_PORT": "15432",
-      "POSTGRES_USER": "miniflux"
+      "POSTGRES_USER": "miniflux",
+      "RUN_MIGRATIONS": "1"
     },
     "hook": {},
     "profile": {},
     "options": {},
     "services": {
+      "miniflux": {
+        "command": "  mkdir -p \"$FLOX_ENV_CACHE/bin\" \"$FLOX_ENV_CACHE/logs\"\n  BIN=\"$FLOX_ENV_CACHE/bin/miniflux\"\n  if [ ! -x \"$BIN\" ] || [ \"$(find \"$FLOX_ENV_PROJECT\" -name '*.go' -newer \"$BIN\" -print -quit 2>/dev/null)\" ]; then\n    (cd \"$FLOX_ENV_PROJECT\" && go build -o \"$BIN\" main.go)\n  fi\n  until pg_isready -h \"$POSTGRES_HOST\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" >/dev/null 2>&1; do sleep 0.5; done\n  exec \"$BIN\" 2>&1 | tee -a \"$FLOX_ENV_CACHE/logs/miniflux.log\"\n"
+      },
       "postgres": {
         "command": "  PGDATA=\"$FLOX_ENV_CACHE/postgres/data\"\n  PGRUN=\"$FLOX_ENV_CACHE/postgres/run\"\n  mkdir -p \"$PGRUN\"\n  if [ ! -d \"$PGDATA\" ]; then\n    initdb -D \"$PGDATA\" --username=\"$POSTGRES_USER\" --auth=trust --no-locale --encoding=UTF8\n    echo \"CREATE DATABASE $POSTGRES_DB;\" > \"$PGRUN/init.sql\"\n    pg_ctl -D \"$PGDATA\" -o \"-k $PGRUN -h '' -p $POSTGRES_PORT\" -l \"$PGRUN/init.log\" start\n    until psql -h \"$PGRUN\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" -d postgres -c '\\q' 2>/dev/null; do sleep 0.5; done\n    psql -h \"$PGRUN\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" -d postgres -f \"$PGRUN/init.sql\"\n    psql -h \"$PGRUN\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" -d postgres -c \"ALTER USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';\"\n    pg_ctl -D \"$PGDATA\" stop\n  fi\n  exec postgres -D \"$PGDATA\" -k \"$PGRUN\" -h \"$POSTGRES_HOST\" -p \"$POSTGRES_PORT\"\n",
         "is-daemon": true,

@@ -24,6 +24,11 @@ POSTGRES_USER = "miniflux"
 POSTGRES_DB = "miniflux"
 POSTGRES_PASSWORD = "secret"
 DATABASE_URL = "postgres://miniflux:secret@localhost:15432/miniflux?sslmode=disable"
+LISTEN_ADDR = "127.0.0.1:8080"
+RUN_MIGRATIONS = "1"
+CREATE_ADMIN = "1"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "adminadmin"
 
 
 ## Activation Hook ---------------------------------------------------
@@ -81,6 +86,17 @@ is-daemon = true
 
 [services.postgres.shutdown]
 command = '''pg_ctl -D "$FLOX_ENV_CACHE/postgres/data" stop -m fast'''
+
+[services.miniflux]
+command = '''
+  mkdir -p "$FLOX_ENV_CACHE/bin" "$FLOX_ENV_CACHE/logs"
+  BIN="$FLOX_ENV_CACHE/bin/miniflux"
+  if [ ! -x "$BIN" ] || [ "$(find "$FLOX_ENV_PROJECT" -name '*.go' -newer "$BIN" -print -quit 2>/dev/null)" ]; then
+    (cd "$FLOX_ENV_PROJECT" && go build -o "$BIN" main.go)
+  fi
+  until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" >/dev/null 2>&1; do sleep 0.5; done
+  exec "$BIN" 2>&1 | tee -a "$FLOX_ENV_CACHE/logs/miniflux.log"
+'''
 
 
 ## Include ----------------------------------------------------------
