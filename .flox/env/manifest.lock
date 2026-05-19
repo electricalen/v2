@@ -10,9 +10,26 @@
         "pkg-path": "postgresql"
       }
     },
+    "vars": {
+      "DATABASE_URL": "postgres://miniflux:secret@localhost:15432/miniflux?sslmode=disable",
+      "POSTGRES_DB": "miniflux",
+      "POSTGRES_HOST": "localhost",
+      "POSTGRES_PASSWORD": "secret",
+      "POSTGRES_PORT": "15432",
+      "POSTGRES_USER": "miniflux"
+    },
     "hook": {},
     "profile": {},
-    "options": {}
+    "options": {},
+    "services": {
+      "postgres": {
+        "command": "  PGDATA=\"$FLOX_ENV_CACHE/postgres/data\"\n  PGRUN=\"$FLOX_ENV_CACHE/postgres/run\"\n  mkdir -p \"$PGRUN\"\n  if [ ! -d \"$PGDATA\" ]; then\n    initdb -D \"$PGDATA\" --username=\"$POSTGRES_USER\" --auth=trust --no-locale --encoding=UTF8\n    echo \"CREATE DATABASE $POSTGRES_DB;\" > \"$PGRUN/init.sql\"\n    pg_ctl -D \"$PGDATA\" -o \"-k $PGRUN -h '' -p $POSTGRES_PORT\" -l \"$PGRUN/init.log\" start\n    until psql -h \"$PGRUN\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" -d postgres -c '\\q' 2>/dev/null; do sleep 0.5; done\n    psql -h \"$PGRUN\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" -d postgres -f \"$PGRUN/init.sql\"\n    psql -h \"$PGRUN\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" -d postgres -c \"ALTER USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';\"\n    pg_ctl -D \"$PGDATA\" stop\n  fi\n  exec postgres -D \"$PGDATA\" -k \"$PGRUN\" -h \"$POSTGRES_HOST\" -p \"$POSTGRES_PORT\"\n",
+        "is-daemon": true,
+        "shutdown": {
+          "command": "pg_ctl -D \"$FLOX_ENV_CACHE/postgres/data\" stop -m fast"
+        }
+      }
+    }
   },
   "packages": [
     {

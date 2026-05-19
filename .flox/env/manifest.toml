@@ -18,7 +18,12 @@ postgresql.pkg-path = "postgresql"
 ##      as well as [hook], [profile] scripts and [services] below.
 ## -------------------------------------------------------------------
 [vars]
-# INTRO_MESSAGE = "It's gettin' Flox in here"
+POSTGRES_HOST = "localhost"
+POSTGRES_PORT = "15432"
+POSTGRES_USER = "miniflux"
+POSTGRES_DB = "miniflux"
+POSTGRES_PASSWORD = "secret"
+DATABASE_URL = "postgres://miniflux:secret@localhost:15432/miniflux?sslmode=disable"
 
 
 ## Activation Hook ---------------------------------------------------
@@ -56,8 +61,26 @@ postgresql.pkg-path = "postgresql"
 ##  $ flox services status            <- Status of running services
 ##  $ flox activate --start-services  <- Activates & starts all
 ## ------------------------------------------------------------------
-[services]
-# myservice.command = "python3 -m http.server"
+[services.postgres]
+command = '''
+  PGDATA="$FLOX_ENV_CACHE/postgres/data"
+  PGRUN="$FLOX_ENV_CACHE/postgres/run"
+  mkdir -p "$PGRUN"
+  if [ ! -d "$PGDATA" ]; then
+    initdb -D "$PGDATA" --username="$POSTGRES_USER" --auth=trust --no-locale --encoding=UTF8
+    echo "CREATE DATABASE $POSTGRES_DB;" > "$PGRUN/init.sql"
+    pg_ctl -D "$PGDATA" -o "-k $PGRUN -h '' -p $POSTGRES_PORT" -l "$PGRUN/init.log" start
+    until psql -h "$PGRUN" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c '\q' 2>/dev/null; do sleep 0.5; done
+    psql -h "$PGRUN" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -f "$PGRUN/init.sql"
+    psql -h "$PGRUN" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d postgres -c "ALTER USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';"
+    pg_ctl -D "$PGDATA" stop
+  fi
+  exec postgres -D "$PGDATA" -k "$PGRUN" -h "$POSTGRES_HOST" -p "$POSTGRES_PORT"
+'''
+is-daemon = true
+
+[services.postgres.shutdown]
+command = '''pg_ctl -D "$FLOX_ENV_CACHE/postgres/data" stop -m fast'''
 
 
 ## Include ----------------------------------------------------------
