@@ -5,3 +5,8 @@
 *.deb
 *.rpm
 miniflux-*
+
+# Flox
+.flox/cache/
+.flox/log/
+.flox/run/
