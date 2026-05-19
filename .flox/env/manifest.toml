@@ -112,7 +112,29 @@ command = '''
 ##  $ flox build
 ##  $ flox publish
 ## ------------------------------------------------------------------
-[build]
+[build.vendor]
+command = '''
+  cd "$FLOX_ENV_PROJECT"
+  go mod vendor
+  mkdir -p $out/vendor
+  cp -r vendor/. $out/vendor/
+'''
+sandbox = "off"
+
+[build.miniflux]
+command = '''
+  rm -rf ./vendor
+  ln -s ${vendor}/vendor ./vendor
+  export GOFLAGS="-mod=vendor"
+  export CGO_ENABLED=0
+  mkdir -p $out/bin
+  go build -trimpath -ldflags="-s -w" -o $out/bin/miniflux main.go
+'''
+sandbox = "pure"
+version.command = "git describe --tags --always --dirty 2>/dev/null || echo dev"
+description = "Minimalist and opinionated feed reader"
+
+# [build]
 # [build.myproject]
 # description = "The coolest project ever"
 # version = "0.0.1"
