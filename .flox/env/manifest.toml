@@ -112,21 +112,24 @@ command = '''
 ##  $ flox build
 ##  $ flox publish
 ## ------------------------------------------------------------------
-[build.vendor]
+[build.src]
 command = '''
   cd "$FLOX_ENV_PROJECT"
   go mod vendor
-  mkdir -p $out/vendor
-  cp -r vendor/. $out/vendor/
+  mkdir -p "$out/src"
+  cp -R . "$out/src/"
+  chmod -R u+w "$out/src"
 '''
 sandbox = "off"
 
 [build.miniflux]
 command = '''
-  env | grep -iE 'flox|src|nix' | sort
-  echo "---"
-  echo "cwd=$PWD"
-  ls -la
+  cp -R ${src}/src/. ./
+  chmod -R u+w .
+  export GOFLAGS="-mod=vendor"
+  export CGO_ENABLED=0
+  mkdir -p "$out/bin"
+  go build -trimpath -ldflags="-s -w" -o "$out/bin/miniflux" .
 '''
 sandbox = "pure"
 version.command = "git describe --tags --always --dirty 2>/dev/null || echo dev"

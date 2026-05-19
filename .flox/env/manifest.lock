@@ -40,15 +40,15 @@
     },
     "build": {
       "miniflux": {
-        "command": "  rm -rf ./vendor\n  ln -s ${vendor}/vendor ./vendor\n  export GOFLAGS=\"-mod=vendor\"\n  export CGO_ENABLED=0\n  mkdir -p $out/bin\n  go build -trimpath -ldflags=\"-s -w\" -o $out/bin/miniflux .\n",
+        "command": "  cp -R ${src}/src/. ./\n  chmod -R u+w .\n  export GOFLAGS=\"-mod=vendor\"\n  export CGO_ENABLED=0\n  mkdir -p \"$out/bin\"\n  go build -trimpath -ldflags=\"-s -w\" -o \"$out/bin/miniflux\" .\n",
         "sandbox": "pure",
         "version": {
           "command": "git describe --tags --always --dirty 2>/dev/null || echo dev"
         },
         "description": "Minimalist and opinionated feed reader"
       },
-      "vendor": {
-        "command": "  cd \"$FLOX_ENV_PROJECT\"\n  go mod vendor\n  mkdir -p $out/vendor\n  cp -r vendor/. $out/vendor/\n",
+      "src": {
+        "command": "  cd \"$FLOX_ENV_PROJECT\"\n  go mod vendor\n  mkdir -p \"$out/src\"\n  cp -R . \"$out/src/\"\n  chmod -R u+w \"$out/src\"\n",
         "sandbox": "off"
       }
     }
