@@ -40,7 +40,7 @@
     },
     "build": {
       "miniflux": {
-        "command": "  rm -rf ./vendor\n  ln -s ${vendor}/vendor ./vendor\n  export GOFLAGS=\"-mod=vendor\"\n  export CGO_ENABLED=0\n  mkdir -p $out/bin\n  go build -trimpath -ldflags=\"-s -w\" -o $out/bin/miniflux main.go\n",
+        "command": "  rm -rf ./vendor\n  ln -s ${vendor}/vendor ./vendor\n  export GOFLAGS=\"-mod=vendor\"\n  export CGO_ENABLED=0\n  mkdir -p $out/bin\n  go build -trimpath -ldflags=\"-s -w\" -o $out/bin/miniflux .\n",
         "sandbox": "pure",
         "version": {
           "command": "git describe --tags --always --dirty 2>/dev/null || echo dev"
