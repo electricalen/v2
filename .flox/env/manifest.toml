@@ -123,6 +123,7 @@ sandbox = "off"
 
 [build.miniflux]
 command = '''
+  echo "cwd=$PWD"; ls -la | head -5
   rm -rf ./vendor
   ln -s ${vendor}/vendor ./vendor
   export GOFLAGS="-mod=vendor"
