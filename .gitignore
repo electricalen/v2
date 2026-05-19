@@ -10,3 +10,5 @@ miniflux-*
 .flox/cache/
 .flox/log/
 .flox/run/
+result-*
+/vendor/
