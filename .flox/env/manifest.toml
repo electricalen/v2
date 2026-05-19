@@ -128,7 +128,7 @@ command = '''
   export GOFLAGS="-mod=vendor"
   export CGO_ENABLED=0
   mkdir -p $out/bin
-  go build -trimpath -ldflags="-s -w" -o $out/bin/miniflux main.go
+  go build -trimpath -ldflags="-s -w" -o $out/bin/miniflux .
 '''
 sandbox = "pure"
 version.command = "git describe --tags --always --dirty 2>/dev/null || echo dev"
